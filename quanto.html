@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUANTO — Hidden Proportions</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080809;--s1:#0f0f13;--s2:#16161d;
+  --border:rgba(255,255,255,0.07);
+  --g:#b8f098;--b:#7eb8f7;--gold:#f7c97e;--orange:#f7a07e;--violet:#a78bfa;
+  --text:#dddde8;--muted:#55556a;--dim:#252530;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 70% 40% at 20% 0%,rgba(184,240,152,.03),transparent),
+             radial-gradient(ellipse 60% 40% at 80% 100%,rgba(126,184,247,.025),transparent);}
+.wrap{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:48px 24px 80px;}
+
+/* HEADER */
+header{text-align:center;margin-bottom:64px;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(64px,14vw,108px);
+  letter-spacing:-5px;color:var(--g);line-height:1;display:inline-block;
+  text-shadow:0 0 80px rgba(184,240,152,.12);}
+.logo sup{font-size:.35em;color:var(--b);letter-spacing:0;vertical-align:super;}
+.tagline{font-family:'Instrument Serif',serif;font-style:italic;font-size:17px;color:var(--muted);margin-top:14px;}
+
+/* TABS */
+.mode-tabs{display:flex;gap:0;margin-bottom:36px;background:var(--s1);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+.tab{flex:1;padding:13px 16px;font-family:'Syne',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:.12em;text-transform:uppercase;border:none;background:transparent;
+  color:var(--muted);cursor:pointer;transition:all .15s;border-right:1px solid var(--border);}
+.tab:last-child{border-right:none;}
+.tab:hover{color:var(--text);}
+.tab.active{background:var(--s2);color:var(--g);}
+.tab .tab-sub{display:block;font-size:8px;font-weight:400;letter-spacing:.08em;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace;text-transform:none;}
+
+/* PROP CARD */
+.prop-card{background:var(--s1);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:24px;}
+.dim-bar{display:grid;grid-template-columns:1fr 56px 1fr;border-bottom:1px solid var(--border);}
+.dim-tag{padding:9px 18px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.dim-tag.left{color:var(--g);border-right:1px solid var(--border);}
+.dim-tag.right{color:var(--b);}
+.dim-tag.right.orange{color:var(--orange);}
+.dim-center{display:flex;align-items:center;justify-content:center;}
+.pairs-grid{display:grid;grid-template-columns:1fr 56px 1fr;}
+.pair-col{display:grid;grid-template-rows:1fr auto 1fr;}
+.pair-item{padding:20px 22px 16px;display:flex;flex-direction:column;justify-content:center;gap:4px;}
+.pair-item.top{border-bottom:1px solid var(--border);}
+.pi-sub{font-size:9px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;}
+.pi-name{font-family:'Instrument Serif',serif;font-style:italic;font-size:clamp(13px,2vw,17px);line-height:1.3;}
+.pi-val{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;letter-spacing:.02em;}
+.pi-unit{font-size:10px;color:var(--muted);}
+.pair-col.left .pair-item .pi-sub{color:var(--g);}
+.pair-col.left .pair-item.top .pi-val{color:var(--g);}
+.pair-col.left .pair-item.bottom .pi-val{color:rgba(184,240,152,.5);}
+.pair-col.right .pair-item .pi-sub{color:var(--b);}
+.pair-col.right .pair-item.top .pi-val{color:var(--b);}
+.pair-col.right .pair-item.bottom .pi-val{color:rgba(126,184,247,.5);}
+.pair-col.right.x-mode .pair-item .pi-sub{color:var(--orange);}
+.pair-col.right.x-mode .pair-item.bottom .pi-val{color:var(--orange);}
+.divider-col{border-left:1px solid var(--border);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:14px 0;}
+.ratio-pill{font-family:'Syne',sans-serif;font-weight:800;font-size:11px;
+  padding:4px 7px;border-radius:3px;text-align:center;line-height:1.3;white-space:nowrap;}
+.ratio-pill.left{background:rgba(184,240,152,.08);color:var(--g);border:1px solid rgba(184,240,152,.18);}
+.ratio-pill.right{background:rgba(126,184,247,.08);color:var(--b);border:1px solid rgba(126,184,247,.18);}
+.ratio-pill.x{background:rgba(247,160,126,.08);color:var(--orange);border:1px solid rgba(247,160,126,.18);}
+.eq-sym{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--gold);}
+.pair-arrow{display:flex;align-items:center;justify-content:center;padding:7px;
+  font-size:10px;color:var(--muted);border-bottom:1px solid var(--border);letter-spacing:.05em;}
+.pi-empty{font-family:'Instrument Serif',serif;font-style:italic;font-size:13px;color:var(--dim);}
+
+/* BUTTONS */
+.btn-zone{display:flex;gap:10px;justify-content:center;margin-bottom:44px;flex-wrap:wrap;}
+.btn-main{font-family:'Syne',sans-serif;font-weight:800;font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;padding:14px 40px;border:none;border-radius:3px;
+  cursor:pointer;transition:all .15s;background:var(--g);color:#060607;}
+.btn-main:hover{background:#ccffb0;transform:translateY(-1px);}
+.btn-reset{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;padding:14px 22px;border-radius:3px;cursor:pointer;
+  transition:all .15s;background:transparent;color:var(--muted);border:1px solid var(--dim);}
+.btn-reset:hover{border-color:var(--orange);color:var(--orange);}
+
+/* TROVA step cards */
+.trova-wrap{display:none;}
+.trova-wrap.visible{display:block;}
+.step-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
+.step-card{background:var(--s1);border:1px solid var(--border);border-radius:4px;
+  padding:13px 14px;display:flex;flex-direction:column;gap:5px;min-height:84px;position:relative;}
+.step-card.active{border-color:rgba(247,201,126,.35);box-shadow:0 0 20px rgba(247,201,126,.05);}
+.step-card.done-g{border-color:rgba(184,240,152,.25);}
+.step-card.done-b{border-color:rgba(126,184,247,.25);}
+.step-card.x-card{border-color:rgba(247,160,126,.2);background:var(--s2);}
+.sc-num{font-size:8px;letter-spacing:.22em;text-transform:uppercase;}
+.step-card.active .sc-num{color:var(--gold);}
+.step-card.done-g .sc-num{color:var(--g);}
+.step-card.done-b .sc-num{color:var(--b);}
+.step-card.x-card .sc-num{color:var(--orange);}
+.sc-name{font-family:'Instrument Serif',serif;font-style:italic;font-size:12px;line-height:1.3;}
+.step-card.active .sc-name{color:var(--muted);}
+.step-card.done-g .sc-name,.step-card.done-b .sc-name{color:var(--text);}
+.step-card.x-card .sc-name{color:var(--orange);}
+.sc-val{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;}
+.step-card.done-g .sc-val{color:var(--g);}
+.step-card.done-b .sc-val{color:var(--b);}
+.step-card.x-card .sc-val{color:var(--orange);}
+.sc-pulse{position:absolute;top:9px;right:9px;width:5px;height:5px;border-radius:50%;
+  background:var(--gold);animation:pulse 1.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+
+/* FILTER + CATALOG */
+.filter-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center;}
+.filter-label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);}
+.filter-btn{background:transparent;border:1px solid var(--dim);color:var(--muted);
+  font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;cursor:pointer;border-radius:2px;transition:all .12s;}
+.filter-btn:hover:not(:disabled){border-color:var(--g);color:var(--g);}
+.filter-btn.on{background:rgba(184,240,152,.08);border-color:var(--g);color:var(--g);}
+.filter-btn:disabled{opacity:.2;cursor:not-allowed;}
+.catalog-hdr{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:11px;}
+.cat-list{display:flex;flex-direction:column;gap:9px;}
+.cat-group{background:var(--s1);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+.cat-head{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--s2);cursor:pointer;user-select:none;}
+.cat-icon{font-size:13px;}
+.cat-name{font-family:'Syne',sans-serif;font-weight:700;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--text);flex:1;}
+.cat-chev{font-size:9px;color:var(--muted);transition:transform .2s;}
+.cat-group.open .cat-chev{transform:rotate(180deg);}
+.cat-items{display:none;flex-wrap:wrap;gap:6px;padding:9px 13px;}
+.cat-group.open .cat-items{display:flex;}
+.chip{background:transparent;border:1px solid var(--dim);color:var(--muted);
+  font-family:'DM Mono',monospace;font-size:10px;padding:4px 9px;cursor:pointer;
+  border-radius:2px;transition:all .1s;display:flex;align-items:center;gap:4px;}
+.chip:hover{border-color:var(--g);color:var(--g);}
+.chip.sg{border-color:var(--g);background:rgba(184,240,152,.07);color:var(--g);}
+.chip.sb{border-color:var(--b);background:rgba(126,184,247,.07);color:var(--b);}
+.chip-dot{width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.chip-dim{color:var(--dim);margin-left:3px;font-size:9px;}
+
+/* QUIZ */
+.quiz-wrap{display:none;}
+.quiz-wrap.visible{display:block;}
+.quiz-score{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:11px 16px;background:var(--s2);border:1px solid var(--border);border-radius:4px;}
+.qs-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+.qs-val{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--gold);}
+.qs-streak{font-size:10px;color:var(--muted);margin-left:auto;}
+.quiz-question{background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:24px 28px;margin-bottom:16px;position:relative;overflow:hidden;}
+.quiz-question::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--orange));}
+.qz-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:13px;}
+.qz-stem{font-family:'Instrument Serif',serif;font-style:italic;font-size:clamp(15px,2.2vw,19px);line-height:1.6;color:var(--text);}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:20px;}
+.qz-opt{background:var(--s1);border:1px solid var(--border);border-radius:4px;
+  padding:14px 17px;cursor:pointer;transition:all .15s;text-align:left;display:flex;align-items:flex-start;gap:10px;}
+.qz-opt:hover:not(.locked){border-color:rgba(247,201,126,.4);background:rgba(247,201,126,.04);}
+.qz-opt.locked{cursor:not-allowed;}
+.qz-opt.correct{border-color:var(--g)!important;background:rgba(184,240,152,.08)!important;}
+.qz-opt.wrong{border-color:#f07070!important;background:rgba(240,112,112,.06)!important;opacity:.7;}
+.qz-opt.missed{border-color:var(--g)!important;background:rgba(184,240,152,.04)!important;}
+.opt-letter{font-family:'Syne',sans-serif;font-weight:800;font-size:11px;width:20px;height:20px;
+  border-radius:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:var(--s2);color:var(--muted);margin-top:1px;}
+.qz-opt.correct .opt-letter{background:var(--g);color:#060607;}
+.qz-opt.wrong .opt-letter{background:#f07070;color:#fff;}
+.qz-opt.missed .opt-letter{background:rgba(184,240,152,.2);color:var(--g);}
+.opt-text{font-family:'Instrument Serif',serif;font-style:italic;font-size:14px;color:var(--text);line-height:1.35;}
+.quiz-result{background:var(--s1);border:1px solid var(--border);border-radius:6px;
+  padding:24px 28px;display:none;position:relative;overflow:hidden;animation:fadeUp .4s ease;}
+.quiz-result.visible{display:block;}
+.quiz-result::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.quiz-result.correct-res::before{background:var(--g);}
+.quiz-result.wrong-res::before{background:#f07070;}
+.qr-verdict{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.5px;margin-bottom:10px;}
+.correct-res .qr-verdict{color:var(--g);}
+.wrong-res .qr-verdict{color:#f07070;}
+.qr-expl{font-family:'Instrument Serif',serif;font-style:italic;font-size:clamp(14px,2.2vw,17px);line-height:1.65;color:var(--text);}
+.qr-expl em{font-style:normal;color:var(--gold);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+footer{text-align:center;margin-top:48px;padding-top:24px;border-top:1px solid var(--border);}
+footer p{font-size:10px;color:var(--dim);letter-spacing:.1em;}
+@media(max-width:580px){
+  .pairs-grid,.step-cards,.quiz-options{grid-template-columns:1fr;}
+  .divider-col{flex-direction:row;border:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:9px 14px;}
+  .dim-bar{grid-template-columns:1fr 1fr;}.dim-center{display:none;}
+  .mode-tabs{flex-wrap:wrap;}
+  .tab{flex:1 1 40%;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="logo">QUANTO<sup>?</sup></div>
+  <p class="tagline">Hidden proportions between phenomena of the universe</p>
+</header>
+
+<div class="mode-tabs">
+  <button class="tab active" data-mode="random">⚄ Random<span class="tab-sub">Discover hidden proportions</span></button>
+  <button class="tab" data-mode="trova">? Find the Fourth<span class="tab-sub">Select 3, compute X</span></button>
+  <button class="tab" data-mode="quiz">◈ Quiz<span class="tab-sub">Guess the fourth term</span></button>
+</div>
+
+<!-- PROP CARD (shared random+trova) -->
+<div class="prop-card" id="propCard">
+  <div class="dim-bar">
+    <div class="dim-tag left"><span id="dimLIcon">●</span><span id="dimLLabel">Pair 1</span></div>
+    <div class="dim-center"></div>
+    <div class="dim-tag right" id="dimTagR"><span id="dimRIcon">●</span><span id="dimRLabel">Pair 2</span></div>
+  </div>
+  <div class="pairs-grid">
+    <div class="pair-col left">
+      <div class="pair-item top" id="piL0"><div class="pi-empty">—</div></div>
+      <div class="pair-arrow" id="arrowL">↕</div>
+      <div class="pair-item bottom" id="piL1"><div class="pi-empty">—</div></div>
+    </div>
+    <div class="divider-col">
+      <div class="ratio-pill left" id="ratioL">—</div>
+      <div class="eq-sym" id="eqSym">≈</div>
+      <div class="ratio-pill right" id="ratioR">—</div>
+    </div>
+    <div class="pair-col right" id="pairRight">
+      <div class="pair-item top" id="piR0"><div class="pi-empty">—</div></div>
+      <div class="pair-arrow" id="arrowR">↕</div>
+      <div class="pair-item bottom" id="piR1"><div class="pi-empty">—</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BTN RANDOM -->
+<div class="btn-zone" id="btnRandZone">
+  <button class="btn-main" id="btnRandom">⚄ &nbsp;Random Proportion</button>
+</div>
+
+<!-- BTN TROVA -->
+<div class="btn-zone" id="btnTrovaZone" style="display:none">
+  <button class="btn-reset" id="btnReset">↺ &nbsp;Start Over</button>
+</div>
+
+<!-- TROVA SECTION -->
+<div class="trova-wrap" id="trovaWrap">
+  <div class="step-cards" id="stepCards"></div>
+  <div class="filter-bar" id="filterBar"><span class="filter-label">Dimension:</span></div>
+  <div class="catalog-hdr">Phenomena catalog</div>
+  <div class="cat-list" id="catList"></div>
+</div>
+
+<!-- QUIZ SECTION -->
+<div class="quiz-wrap" id="quizWrap">
+  <div class="quiz-score">
+    <div><div class="qs-label">Score</div><div class="qs-val" id="qsVal">0 / 0</div></div>
+    <div class="qs-streak" id="qsStreak"></div>
+  </div>
+  <div class="quiz-question" id="quizQuestion">
+    <div class="qz-label">◈ Proportion quiz</div>
+    <div class="qz-stem" id="qzStem"></div>
+  </div>
+  <div class="quiz-options" id="quizOptions"></div>
+  <div class="quiz-result" id="quizResult">
+    <div class="qr-verdict" id="qrVerdict"></div>
+    <div class="qr-expl" id="qrExpl"></div>
+  </div>
+  <div class="btn-zone" style="margin-top:20px;margin-bottom:0">
+    <button class="btn-main" id="btnNewQuiz">⚄ &nbsp;New Question</button>
+  </div>
+</div>
+
+<footer><p>QUANTO — hidden proportions between phenomena of the universe</p></footer>
+</div>
+
+<script>
+const SEC_PER_YEAR = 3.156e7;
+
+/* ══════════════════════════════════════
+   DIMENSIONS
+══════════════════════════════════════ */
+const DIM = {
+  size:        {label:"Size",        icon:"🔬", unit:"m"},
+  distance:    {label:"Distance",    icon:"📏", unit:"m"},
+  duration:    {label:"Duration",    icon:"⏳", unit:"years"},
+  timeago:     {label:"Time ago",    icon:"📅", unit:"years ago"},
+  temperature: {label:"Temperature", icon:"🌡️", unit:"K"},
+  mass:        {label:"Mass",        icon:"⚖️", unit:"kg"},
+  energy:      {label:"Energy",      icon:"⚡", unit:"J"},
+  probability: {label:"Probability", icon:"%",  unit:""},
+};
+
+/* ══════════════════════════════════════
+   FORMAT
+══════════════════════════════════════ */
+function fvTime(s){
+  const y=s/SEC_PER_YEAR;
+  if(y>=1e9)return(y/1e9).toPrecision(3)+" Bln yrs";
+  if(y>=1e6)return(y/1e6).toPrecision(3)+" Mln yrs";
+  if(y>=1000)return(y/1000).toPrecision(3)+"k yrs";
+  if(y>=1)return parseFloat(y.toPrecision(3))+" yrs";
+  const d=s/86400;
+  if(d>=1)return parseFloat(d.toPrecision(3))+" days";
+  return parseFloat(s.toPrecision(3))+" s";
+}
+
+function fvProb(p){
+  const inv=1/p;
+  if(inv<=1)return"1 in 1";
+  if(inv>=1e9)return`1 in ${(inv/1e9).toPrecision(3)}B`;
+  if(inv>=1e6)return`1 in ${(inv/1e6).toPrecision(3)}M`;
+  if(inv>=1e3)return`1 in ${Math.round(inv/1e3)}k`;
+  return`1 in ${Math.round(inv).toLocaleString("en-US")}`;
+}
+
+function fv(item){
+  const{val,dim}=item;
+  if(dim==="duration"||dim==="timeago")return fvTime(val);
+  if(dim==="probability")return fvProb(val);
+  const a=Math.abs(val);
+  if(a>=1e24)return(val/1e24).toPrecision(3)+" ×10²⁴";
+  if(a>=1e21)return(val/1e21).toPrecision(3)+" ×10²¹";
+  if(a>=1e18)return(val/1e18).toPrecision(3)+" ×10¹⁸";
+  if(a>=1e15)return(val/1e15).toPrecision(3)+" ×10¹⁵";
+  if(a>=1e12)return(val/1e12).toPrecision(3)+" ×10¹²";
+  if(a>=1e9)return(val/1e9).toPrecision(3)+" Bln";
+  if(a>=1e6)return(val/1e6).toPrecision(3)+" Mln";
+  if(a>=1e3)return(val/1e3).toPrecision(3)+"k";
+  if(a>=1)return parseFloat(val.toPrecision(3))+"";
+  if(a>=1e-3)return(val*1e3).toPrecision(2)+" ×10⁻³";
+  if(a>=1e-6)return(val*1e6).toPrecision(2)+" ×10⁻⁶";
+  if(a>=1e-9)return(val*1e9).toPrecision(2)+" ×10⁻⁹";
+  if(a>=1e-12)return(val*1e12).toPrecision(2)+" ×10⁻¹²";
+  if(a>=1e-27)return(val*1e27).toPrecision(2)+" ×10⁻²⁷";
+  return val.toExponential(2);
+}
+
+function displayUnit(item){
+  if(item.dim==="duration")return fvTime(item.val).split(" ").slice(1).join(" ")||"yrs";
+  if(item.dim==="timeago")return"years ago";
+  if(item.dim==="probability")return"";
+  return item.unit;
+}
+
+function fRatio(r){
+  const a=Math.abs(r);
+  if(a>=1e12)return(a/1e12).toFixed(1)+" ×10¹²×";
+  if(a>=1e9)return(a/1e9).toFixed(1)+" Bln ×";
+  if(a>=1e6)return(a/1e6).toFixed(1)+" Mln ×";
+  if(a>=1e3)return(a/1e3).toFixed(1)+"k ×";
+  return a.toFixed(1)+"×";
+}
+
+/* ══════════════════════════════════════
+   CATALOG
+══════════════════════════════════════ */
+const ITEMS = [
+  // SIZE
+  {id:"obs_univ",      name:"Observable universe radius",    cat:"🌌 Cosmic",      dim:"size",val:4.4e26,unit:"m"},
+  {id:"milkyway",      name:"Milky Way diameter",            cat:"🌌 Cosmic",      dim:"size",val:9.46e20,unit:"m"},
+  {id:"andromeda_d",   name:"Andromeda galaxy diameter",     cat:"🌌 Cosmic",      dim:"size",val:2.2e21,unit:"m"},
+  {id:"sun_diam",      name:"Sun diameter",                  cat:"🌌 Cosmic",      dim:"size",val:1.39e9,unit:"m"},
+  {id:"earth_diam",    name:"Earth diameter",                cat:"🌌 Cosmic",      dim:"size",val:1.274e7,unit:"m"},
+  {id:"moon_diam",     name:"Moon diameter",                 cat:"🌌 Cosmic",      dim:"size",val:3.474e6,unit:"m"},
+  {id:"jupiter_diam",  name:"Jupiter diameter",              cat:"🌌 Cosmic",      dim:"size",val:1.4e8,unit:"m"},
+  {id:"neutron_star",  name:"Neutron star diameter",         cat:"🌌 Cosmic",      dim:"size",val:20000,unit:"m"},
+  {id:"sgr_a_r",       name:"Sgr A* event horizon",          cat:"🌌 Cosmic",      dim:"size",val:1.2e10,unit:"m"},
+  {id:"everest",       name:"Mount Everest height",          cat:"🌍 Geographic",  dim:"size",val:8849,unit:"m"},
+  {id:"mariana",       name:"Mariana Trench depth",          cat:"🌍 Geographic",  dim:"size",val:10935,unit:"m"},
+  {id:"eiffel",        name:"Eiffel Tower",                  cat:"🌍 Geographic",  dim:"size",val:300,unit:"m"},
+  {id:"burj",          name:"Burj Khalifa",                  cat:"🌍 Geographic",  dim:"size",val:828,unit:"m"},
+  {id:"colosseum",     name:"Colosseum height",              cat:"🌍 Geographic",  dim:"size",val:48,unit:"m"},
+  {id:"football_f",    name:"Football pitch length",         cat:"🌍 Geographic",  dim:"size",val:105,unit:"m"},
+  {id:"blue_whale",    name:"Blue whale length",             cat:"🧬 Biological",  dim:"size",val:30,unit:"m"},
+  {id:"human_h",       name:"Human height",                  cat:"👤 Human",       dim:"size",val:1.75,unit:"m"},
+  {id:"ant",           name:"Ant",                           cat:"🧬 Biological",  dim:"size",val:2e-3,unit:"m"},
+  {id:"sand_grain",    name:"Sand grain",                    cat:"🧬 Biological",  dim:"size",val:5e-4,unit:"m"},
+  {id:"hair",          name:"Human hair thickness",          cat:"🧬 Biological",  dim:"size",val:7e-5,unit:"m"},
+  {id:"rbc",           name:"Red blood cell",                cat:"🧬 Biological",  dim:"size",val:8e-6,unit:"m"},
+  {id:"cell",          name:"Human cell",                    cat:"🧬 Biological",  dim:"size",val:1e-5,unit:"m"},
+  {id:"virus",         name:"Coronavirus",                   cat:"🧬 Biological",  dim:"size",val:1e-7,unit:"m"},
+  {id:"dna",           name:"DNA width",                     cat:"🧬 Biological",  dim:"size",val:2e-9,unit:"m"},
+  {id:"hydrogen",      name:"Hydrogen atom",                 cat:"🧬 Biological",  dim:"size",val:5.3e-11,unit:"m"},
+  {id:"proton_s",      name:"Proton size",                   cat:"🧬 Biological",  dim:"size",val:8.5e-16,unit:"m"},
+  {id:"transistor",    name:"Modern transistor (3nm)",       cat:"💡 Tech",        dim:"size",val:3e-9,unit:"m"},
+  {id:"boeing747_l",   name:"Boeing 747 length",             cat:"💡 Tech",        dim:"size",val:70.6,unit:"m"},
+  {id:"titanic_l",     name:"Titanic length",                cat:"💡 Tech",        dim:"size",val:269,unit:"m"},
+  {id:"iss_l",         name:"International Space Station",   cat:"💡 Tech",        dim:"size",val:109,unit:"m"},
+  // DISTANCE
+  {id:"sun_dist",      name:"Earth–Sun distance",            cat:"🌌 Cosmic",      dim:"distance",val:1.496e11,unit:"m"},
+  {id:"moon_dist",     name:"Earth–Moon distance",           cat:"🌌 Cosmic",      dim:"distance",val:3.844e8,unit:"m"},
+  {id:"mars_dist",     name:"Earth–Mars (average)",          cat:"🌌 Cosmic",      dim:"distance",val:2.25e11,unit:"m"},
+  {id:"proxima",       name:"Proxima Centauri distance",     cat:"🌌 Cosmic",      dim:"distance",val:4.02e16,unit:"m"},
+  {id:"andromeda",     name:"Andromeda galaxy distance",     cat:"🌌 Cosmic",      dim:"distance",val:2.37e22,unit:"m"},
+  {id:"pluto_dist",    name:"Earth–Pluto distance",          cat:"🌌 Cosmic",      dim:"distance",val:5.9e12,unit:"m"},
+  {id:"equator",       name:"Earth's equatorial circumference",cat:"🌍 Geographic",dim:"distance",val:4.007e7,unit:"m"},
+  {id:"rome_nyc",      name:"Rome → New York",               cat:"🌍 Geographic",  dim:"distance",val:6.893e6,unit:"m"},
+  {id:"rome_tokyo",    name:"Rome → Tokyo",                  cat:"🌍 Geographic",  dim:"distance",val:9.87e6,unit:"m"},
+  {id:"amazon",        name:"Amazon River length",           cat:"🌍 Geographic",  dim:"distance",val:6.992e6,unit:"m"},
+  {id:"great_wall",    name:"Great Wall of China",           cat:"🌍 Geographic",  dim:"distance",val:2.19e7,unit:"m"},
+  {id:"marathon",      name:"Marathon distance",             cat:"👤 Human",       dim:"distance",val:42195,unit:"m"},
+  {id:"step",          name:"Human step",                    cat:"👤 Human",       dim:"distance",val:0.75,unit:"m"},
+  {id:"deepest_drill", name:"Kola borehole depth",           cat:"💡 Tech",        dim:"distance",val:12262,unit:"m"},
+  // DURATION
+  {id:"age_univ",      name:"Age of the universe",           cat:"⏳ Duration",    dim:"duration",val:13.8e9*SEC_PER_YEAR,unit:"s"},
+  {id:"age_earth",     name:"Age of the Earth",              cat:"⏳ Duration",    dim:"duration",val:4.5e9*SEC_PER_YEAR,unit:"s"},
+  {id:"dino_era",      name:"Age of dinosaurs era",          cat:"⏳ Duration",    dim:"duration",val:165e6*SEC_PER_YEAR,unit:"s"},
+  {id:"homo_era",      name:"Homo sapiens existence",        cat:"⏳ Duration",    dim:"duration",val:300e3*SEC_PER_YEAR,unit:"s"},
+  {id:"roman_empire",  name:"Roman Empire duration",         cat:"⏳ Duration",    dim:"duration",val:503*SEC_PER_YEAR,unit:"s"},
+  {id:"british_emp",   name:"British Empire duration",       cat:"⏳ Duration",    dim:"duration",val:400*SEC_PER_YEAR,unit:"s"},
+  {id:"renaissance",   name:"The Renaissance",               cat:"⏳ Duration",    dim:"duration",val:200*SEC_PER_YEAR,unit:"s"},
+  {id:"cold_war",      name:"Cold War duration",             cat:"⏳ Duration",    dim:"duration",val:44*SEC_PER_YEAR,unit:"s"},
+  {id:"ww1_dur",       name:"World War I duration",          cat:"⏳ Duration",    dim:"duration",val:4.3*SEC_PER_YEAR,unit:"s"},
+  {id:"ww2_dur",       name:"World War II duration",         cat:"⏳ Duration",    dim:"duration",val:6*SEC_PER_YEAR,unit:"s"},
+  {id:"lifetime",      name:"Average human lifespan",        cat:"⏳ Duration",    dim:"duration",val:80*SEC_PER_YEAR,unit:"s"},
+  {id:"tortoise_life", name:"Giant tortoise lifespan",       cat:"⏳ Duration",    dim:"duration",val:150*SEC_PER_YEAR,unit:"s"},
+  {id:"dog_life",      name:"Dog lifespan",                  cat:"⏳ Duration",    dim:"duration",val:13*SEC_PER_YEAR,unit:"s"},
+  {id:"mayfly",        name:"Mayfly lifespan",               cat:"⏳ Duration",    dim:"duration",val:86400,unit:"s"},
+  {id:"pregnancy",     name:"Human pregnancy",               cat:"⏳ Duration",    dim:"duration",val:(9/12)*SEC_PER_YEAR,unit:"s"},
+  {id:"one_year",      name:"One year",                      cat:"⏳ Duration",    dim:"duration",val:SEC_PER_YEAR,unit:"s"},
+  {id:"one_month",     name:"One month",                     cat:"⏳ Duration",    dim:"duration",val:SEC_PER_YEAR/12,unit:"s"},
+  {id:"one_day",       name:"One day",                       cat:"⏳ Duration",    dim:"duration",val:86400,unit:"s"},
+  {id:"one_hour",      name:"One hour",                      cat:"⏳ Duration",    dim:"duration",val:3600,unit:"s"},
+  {id:"heartbeat",     name:"Human heartbeat",               cat:"⏳ Duration",    dim:"duration",val:0.8,unit:"s"},
+  {id:"blink",         name:"Eye blink",                     cat:"👤 Human",       dim:"duration",val:0.15,unit:"s"},
+  {id:"olympic_100m",  name:"100m Olympic record",           cat:"👤 Human",       dim:"duration",val:9.58,unit:"s"},
+  {id:"flight_rom_nyc",name:"Rome–New York flight",          cat:"💡 Tech",        dim:"duration",val:9*3600,unit:"s"},
+  {id:"apollo_moon",   name:"Apollo journey to the Moon",    cat:"💡 Tech",        dim:"duration",val:3*86400,unit:"s"},
+  {id:"voyager_time",  name:"Voyager 1 in space",            cat:"💡 Tech",        dim:"duration",val:47*SEC_PER_YEAR,unit:"s"},
+  // TIMEAGO
+  {id:"big_bang",      name:"Big Bang",                      cat:"📅 Historical",  dim:"timeago",val:13.8e9*SEC_PER_YEAR,unit:"s"},
+  {id:"first_stars",   name:"First stars",                   cat:"📅 Historical",  dim:"timeago",val:13.5e9*SEC_PER_YEAR,unit:"s"},
+  {id:"earth_form",    name:"Earth formation",               cat:"📅 Historical",  dim:"timeago",val:4.5e9*SEC_PER_YEAR,unit:"s"},
+  {id:"first_life",    name:"First life on Earth",           cat:"📅 Historical",  dim:"timeago",val:3.8e9*SEC_PER_YEAR,unit:"s"},
+  {id:"dino_ext",      name:"Dinosaur extinction",           cat:"📅 Historical",  dim:"timeago",val:66e6*SEC_PER_YEAR,unit:"s"},
+  {id:"homo_sap",      name:"Homo sapiens appearance",       cat:"📅 Historical",  dim:"timeago",val:300e3*SEC_PER_YEAR,unit:"s"},
+  {id:"cave_art",      name:"First cave paintings",          cat:"📅 Historical",  dim:"timeago",val:40e3*SEC_PER_YEAR,unit:"s"},
+  {id:"agriculture",   name:"Beginning of agriculture",      cat:"📅 Historical",  dim:"timeago",val:10e3*SEC_PER_YEAR,unit:"s"},
+  {id:"pyramids",      name:"Pyramids of Giza",              cat:"📅 Historical",  dim:"timeago",val:4500*SEC_PER_YEAR,unit:"s"},
+  {id:"rome_found",    name:"Founding of Rome",              cat:"📅 Historical",  dim:"timeago",val:2776*SEC_PER_YEAR,unit:"s"},
+  {id:"jesus_birth",   name:"Birth of Jesus",                cat:"📅 Historical",  dim:"timeago",val:2025*SEC_PER_YEAR,unit:"s"},
+  {id:"rome_fall",     name:"Fall of the Roman Empire",      cat:"📅 Historical",  dim:"timeago",val:1550*SEC_PER_YEAR,unit:"s"},
+  {id:"black_death",   name:"Black Death in Europe",         cat:"📅 Historical",  dim:"timeago",val:675*SEC_PER_YEAR,unit:"s"},
+  {id:"columbus",      name:"Columbus voyage",               cat:"📅 Historical",  dim:"timeago",val:533*SEC_PER_YEAR,unit:"s"},
+  {id:"gutenberg",     name:"Gutenberg's printing press",    cat:"📅 Historical",  dim:"timeago",val:575*SEC_PER_YEAR,unit:"s"},
+  {id:"french_rev",    name:"French Revolution",             cat:"📅 Historical",  dim:"timeago",val:236*SEC_PER_YEAR,unit:"s"},
+  {id:"napoleon",      name:"Battle of Waterloo",            cat:"📅 Historical",  dim:"timeago",val:210*SEC_PER_YEAR,unit:"s"},
+  {id:"darwin_origin", name:"On the Origin of Species",      cat:"📅 Historical",  dim:"timeago",val:166*SEC_PER_YEAR,unit:"s"},
+  {id:"ww1_start",     name:"Start of World War I",          cat:"📅 Historical",  dim:"timeago",val:111*SEC_PER_YEAR,unit:"s"},
+  {id:"ww2_end",       name:"End of World War II",           cat:"📅 Historical",  dim:"timeago",val:80*SEC_PER_YEAR,unit:"s"},
+  {id:"dna_discovery", name:"DNA structure discovered",      cat:"📅 Historical",  dim:"timeago",val:72*SEC_PER_YEAR,unit:"s"},
+  {id:"moon_land",     name:"Moon landing",                  cat:"📅 Historical",  dim:"timeago",val:56*SEC_PER_YEAR,unit:"s"},
+  {id:"berlin_wall",   name:"Fall of the Berlin Wall",       cat:"📅 Historical",  dim:"timeago",val:36*SEC_PER_YEAR,unit:"s"},
+  {id:"iphone",        name:"First iPhone launch",           cat:"📅 Historical",  dim:"timeago",val:18*SEC_PER_YEAR,unit:"s"},
+  {id:"covid",         name:"Covid pandemic begins",         cat:"📅 Historical",  dim:"timeago",val:5*SEC_PER_YEAR,unit:"s"},
+  {id:"chatgpt",       name:"ChatGPT launch",                cat:"📅 Historical",  dim:"timeago",val:2.5*SEC_PER_YEAR,unit:"s"},
+  // TEMPERATURE
+  {id:"cmb_temp",      name:"Cosmic microwave background",   cat:"🌌 Cosmic",      dim:"temperature",val:2.7,unit:"K"},
+  {id:"antarctic",     name:"Antarctic cold record",         cat:"🌍 Geographic",  dim:"temperature",val:184,unit:"K"},
+  {id:"dry_ice",       name:"Dry ice (CO₂)",                 cat:"⚡ Physical",    dim:"temperature",val:195,unit:"K"},
+  {id:"ice_t",         name:"Ice cube",                      cat:"⚡ Physical",    dim:"temperature",val:273,unit:"K"},
+  {id:"body_t",        name:"Human body",                    cat:"👤 Human",       dim:"temperature",val:310,unit:"K"},
+  {id:"boil_t",        name:"Boiling water",                 cat:"⚡ Physical",    dim:"temperature",val:373,unit:"K"},
+  {id:"lava",          name:"Volcanic lava",                 cat:"🌍 Geographic",  dim:"temperature",val:1400,unit:"K"},
+  {id:"candle_t",      name:"Candle flame",                  cat:"⚡ Physical",    dim:"temperature",val:1400,unit:"K"},
+  {id:"sun_surf",      name:"Sun's surface",                 cat:"🌌 Cosmic",      dim:"temperature",val:5778,unit:"K"},
+  {id:"lightning_t",   name:"Lightning bolt",                cat:"⚡ Physical",    dim:"temperature",val:30000,unit:"K"},
+  {id:"sun_core",      name:"Sun's core",                    cat:"🌌 Cosmic",      dim:"temperature",val:1.57e7,unit:"K"},
+  {id:"nuke_blast",    name:"Nuclear explosion (center)",    cat:"⚡ Physical",    dim:"temperature",val:1e8,unit:"K"},
+  {id:"big_bang_t",    name:"Big Bang (1s after)",           cat:"🌌 Cosmic",      dim:"temperature",val:1e10,unit:"K"},
+  // MASS
+  {id:"sun_mass",      name:"Mass of the Sun",               cat:"🌌 Cosmic",      dim:"mass",val:1.99e30,unit:"kg"},
+  {id:"earth_mass",    name:"Mass of the Earth",             cat:"🌌 Cosmic",      dim:"mass",val:5.97e24,unit:"kg"},
+  {id:"moon_mass",     name:"Mass of the Moon",              cat:"🌌 Cosmic",      dim:"mass",val:7.35e22,unit:"kg"},
+  {id:"ocean_m",       name:"Mass of the oceans",            cat:"🌍 Geographic",  dim:"mass",val:1.4e21,unit:"kg"},
+  {id:"aircraft_car",  name:"Aircraft carrier (full)",       cat:"💡 Tech",        dim:"mass",val:1e8,unit:"kg"},
+  {id:"boeing747_m",   name:"Boeing 747 (full)",             cat:"💡 Tech",        dim:"mass",val:4.12e5,unit:"kg"},
+  {id:"blue_whale_m",  name:"Blue whale",                    cat:"🧬 Biological",  dim:"mass",val:150000,unit:"kg"},
+  {id:"elephant",      name:"African elephant",              cat:"🧬 Biological",  dim:"mass",val:6000,unit:"kg"},
+  {id:"horse",         name:"Horse",                         cat:"🧬 Biological",  dim:"mass",val:500,unit:"kg"},
+  {id:"human_m",       name:"Average person",                cat:"👤 Human",       dim:"mass",val:70,unit:"kg"},
+  {id:"cat_m",         name:"Cat",                           cat:"🧬 Biological",  dim:"mass",val:4,unit:"kg"},
+  {id:"mouse_m",       name:"Mouse",                         cat:"🧬 Biological",  dim:"mass",val:0.02,unit:"kg"},
+  {id:"bee_m",         name:"Bee",                           cat:"🧬 Biological",  dim:"mass",val:1e-4,unit:"kg"},
+  {id:"sand_m",        name:"Sand grain (mass)",             cat:"⚡ Physical",    dim:"mass",val:6.7e-8,unit:"kg"},
+  {id:"cell_m",        name:"Human cell (mass)",             cat:"🧬 Biological",  dim:"mass",val:1e-12,unit:"kg"},
+  {id:"proton_m",      name:"Proton",                        cat:"⚡ Physical",    dim:"mass",val:1.67e-27,unit:"kg"},
+  {id:"electron_m",    name:"Electron",                      cat:"⚡ Physical",    dim:"mass",val:9.1e-31,unit:"kg"},
+  // ENERGY
+  {id:"supernova",     name:"Supernova",                     cat:"🌌 Cosmic",      dim:"energy",val:1e44,unit:"J"},
+  {id:"asteroid_imp",  name:"Asteroid impact (dinosaurs)",   cat:"🌌 Cosmic",      dim:"energy",val:4e23,unit:"J"},
+  {id:"tsar_bomba",    name:"Tsar Bomba",                    cat:"⚡ Physical",    dim:"energy",val:2.1e17,unit:"J"},
+  {id:"hiroshima",     name:"Hiroshima bomb",                cat:"⚡ Physical",    dim:"energy",val:6.3e13,unit:"J"},
+  {id:"krakatoa",      name:"Krakatoa eruption 1883",        cat:"🌍 Geographic",  dim:"energy",val:8.4e16,unit:"J"},
+  {id:"earthquake_9",  name:"Magnitude 9 earthquake",        cat:"🌍 Geographic",  dim:"energy",val:2e18,unit:"J"},
+  {id:"lightning_e",   name:"Lightning bolt (energy)",       cat:"⚡ Physical",    dim:"energy",val:5e9,unit:"J"},
+  {id:"petrol_liter",  name:"1 litre of petrol",             cat:"💡 Tech",        dim:"energy",val:3.4e7,unit:"J"},
+  {id:"kilowatthour",  name:"1 kWh (electricity bill)",      cat:"💡 Tech",        dim:"energy",val:3.6e6,unit:"J"},
+  {id:"candle_e",      name:"Candle (1 hour)",               cat:"⚡ Physical",    dim:"energy",val:180000,unit:"J"},
+  {id:"apple_fall",    name:"Apple falling 1m",              cat:"⚡ Physical",    dim:"energy",val:1,unit:"J"},
+  {id:"human_day_e",   name:"Human daily energy",            cat:"👤 Human",       dim:"energy",val:8e6,unit:"J"},
+  {id:"photon_e",      name:"Visible light photon",          cat:"⚡ Physical",    dim:"energy",val:3.4e-19,unit:"J"},
+  // PROBABILITY
+  {id:"superenalotto", name:"Win the Superenalotto (Italy)", cat:"🎲 Games",       dim:"probability",val:1/622614630,unit:""},
+  {id:"lotto_649",     name:"Win 6/49 lottery",              cat:"🎲 Games",       dim:"probability",val:1/13983816,unit:""},
+  {id:"poker_royal",   name:"Royal flush on first deal",     cat:"🎲 Games",       dim:"probability",val:1/649740,unit:""},
+  {id:"dadi_6x",       name:"Roll six 6s in a row",          cat:"🎲 Games",       dim:"probability",val:1/46656,unit:""},
+  {id:"testa_10x",     name:"Heads 10 times in a row",       cat:"🎲 Games",       dim:"probability",val:1/1024,unit:""},
+  {id:"testa_20x",     name:"Heads 20 times in a row",       cat:"🎲 Games",       dim:"probability",val:1/1048576,unit:""},
+  {id:"roulette_0",    name:"Zero in roulette",              cat:"🎲 Games",       dim:"probability",val:1/37,unit:""},
+  {id:"gratta_vinci",  name:"Scratch card average win",      cat:"🎲 Games",       dim:"probability",val:1/4,unit:""},
+  {id:"fulmine_anno",  name:"Struck by lightning this year", cat:"⚡ Risk",        dim:"probability",val:1/1200000,unit:""},
+  {id:"fulmine_vita",  name:"Struck by lightning in lifetime",cat:"⚡ Risk",       dim:"probability",val:1/15300,unit:""},
+  {id:"meteora",       name:"Death by meteorite",            cat:"⚡ Risk",        dim:"probability",val:1/1600000,unit:""},
+  {id:"squalo",        name:"Fatal shark attack",            cat:"⚡ Risk",        dim:"probability",val:1/3748067,unit:""},
+  {id:"ape_morte",     name:"Death by bee sting",            cat:"⚡ Risk",        dim:"probability",val:1/46562,unit:""},
+  {id:"aereo",         name:"Death in plane crash",          cat:"⚡ Risk",        dim:"probability",val:1/11000,unit:""},
+  {id:"auto_vita",     name:"Death in car accident (lifetime)",cat:"⚡ Risk",      dim:"probability",val:1/101,unit:""},
+  {id:"annegamento",   name:"Death by drowning (lifetime)",  cat:"⚡ Risk",        dim:"probability",val:1/1128,unit:""},
+  {id:"gemelli_id",    name:"Born an identical twin",        cat:"🧬 Biology",     dim:"probability",val:1/250,unit:""},
+  {id:"quadrifoglio",  name:"Finding a four-leaf clover",    cat:"🧬 Biology",     dim:"probability",val:1/10000,unit:""},
+  {id:"mancino",       name:"Born left-handed",              cat:"🧬 Biology",     dim:"probability",val:1/10,unit:""},
+  {id:"occhi_verdi",   name:"Having green eyes",             cat:"🧬 Biology",     dim:"probability",val:1/50,unit:""},
+  {id:"capelli_rossi", name:"Having red hair",               cat:"🧬 Biology",     dim:"probability",val:1/50,unit:""},
+  {id:"albino",        name:"Born albino",                   cat:"🧬 Biology",     dim:"probability",val:1/17000,unit:""},
+  {id:"perfpitch",     name:"Having perfect pitch",          cat:"🧬 Biology",     dim:"probability",val:1/10000,unit:""},
+  {id:"cancro_vita",   name:"Cancer diagnosis in lifetime",  cat:"🧬 Biology",     dim:"probability",val:2/5,unit:""},
+  {id:"sosia",         name:"Meeting a lookalike on the street",cat:"🌍 Everyday", dim:"probability",val:1/135,unit:""},
+  {id:"compleanno",    name:"Sharing birthday with a stranger",cat:"🌍 Everyday",  dim:"probability",val:1/365,unit:""},
+  {id:"natale_pioggia",name:"Rain in Paris on Christmas",    cat:"🌍 Everyday",    dim:"probability",val:1/5,unit:""},
+  {id:"neve_roma",     name:"Snow in Rome on New Year's",    cat:"🌍 Everyday",    dim:"probability",val:1/20,unit:""},
+  {id:"volo_ritardo",  name:"Flight delayed over 1 hour",    cat:"🌍 Everyday",    dim:"probability",val:1/4,unit:""},
+  {id:"oscar",         name:"Winning an Oscar in your lifetime",cat:"⭐ Success",  dim:"probability",val:1/11500,unit:""},
+  {id:"olimpiadi",     name:"Competing in the Olympics",     cat:"⭐ Success",     dim:"probability",val:1/500000,unit:""},
+  {id:"astronauta",    name:"Becoming a NASA astronaut",     cat:"⭐ Success",     dim:"probability",val:1/13000,unit:""},
+  {id:"miliardario",   name:"Becoming a billionaire",        cat:"⭐ Success",     dim:"probability",val:1/578508,unit:""},
+  {id:"nobel",         name:"Winning a Nobel Prize",         cat:"⭐ Success",     dim:"probability",val:1/916000000,unit:""},
+  {id:"genius_iq",     name:"IQ above 140",                  cat:"🎵 Curiosities", dim:"probability",val:1/250,unit:""},
+  {id:"ambidestro",    name:"Being ambidextrous",            cat:"🎵 Curiosities", dim:"probability",val:1/100,unit:""},
+  {id:"sesto_dito",    name:"Born with a sixth finger",      cat:"🎵 Curiosities", dim:"probability",val:1/1000,unit:""},
+  {id:"cometa",        name:"Seeing a comet with naked eye", cat:"🎵 Curiosities", dim:"probability",val:1/2,unit:""},
+  {id:"asteroide_100", name:"Asteroid >100m hits Earth (next 100 yrs)",cat:"🌌 Cosmic",dim:"probability",val:1/1000,unit:""},
+  {id:"pci_1968",      name:"PCI votes — 1968 Italian elections",cat:"🗳️ Politics", dim:"probability",val:0.269,unit:""},
+  {id:"dc_1968",       name:"DC votes — 1968 Italian elections", cat:"🗳️ Politics", dim:"probability",val:0.392,unit:""},
+  {id:"psi_psdi_1968", name:"PSI-PSDI votes — 1968 elections",  cat:"🗳️ Politics", dim:"probability",val:0.148,unit:""},
+  {id:"msi_1968",      name:"MSI votes — 1968 Italian elections",cat:"🗳️ Politics", dim:"probability",val:0.045,unit:""},
+  {id:"pli_1968",      name:"PLI votes — 1968 Italian elections",cat:"🗳️ Politics", dim:"probability",val:0.057,unit:""},
+];
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let mode="random";
+let currentProp=null;
+let tSlots=[null,null,null],tStep=0,tDim1=null;
+let activeDimFilter=null;
+let quizScore={correct:0,total:0,streak:0};
+let quizLocked=false,quizCorrectIdx=-1;
+
+/* ══════════════════════════════════════
+   STATIC QUIZ QUESTIONS
+══════════════════════════════════════ */
+const QUIZ_BANK = [
+  {
+    prop:{dim1:"size",dim2:"mass",
+      p1:[{id:"virus",name:"Coronavirus",dim:"size",val:1e-7,unit:"m"},{id:"human_h",name:"Human height",dim:"size",val:1.75,unit:"m"}],
+      p2:[{id:"electron_m",name:"Electron",dim:"mass",val:9.1e-31,unit:"kg"},{id:"cat_m",name:"Cat",dim:"mass",val:4,unit:"kg"}],
+      ratio1:1.75e7,ratio2:4.4e30},
+    stem:"A coronavirus is to a human as an electron is to something much, much heavier. Which object has roughly that mass?",
+    options:[
+      {text:"A cat",correct:true},
+      {text:"A bee",correct:false},
+      {text:"A grain of sand",correct:false},
+      {text:"A human cell",correct:false}
+    ],
+    explanation:"A <em>coronavirus</em> (100nm) is about 17 million times smaller than a human (1.75m). The same ratio applied to an electron (9.1×10⁻³¹ kg) gives roughly 4 kg — the mass of a <em>cat</em>. Scale bridges the invisible and the tangible."
+  },
+  {
+    prop:{dim1:"distance",dim2:"duration",
+      p1:[{id:"step",name:"Human step",dim:"distance",val:0.75,unit:"m"},{id:"andromeda",name:"Andromeda galaxy",dim:"distance",val:2.37e22,unit:"m"}],
+      p2:[{id:"heartbeat",name:"Human heartbeat",dim:"duration",val:0.8,unit:"s"},{id:"age_univ",name:"Age of the universe",dim:"duration",val:13.8e9*SEC_PER_YEAR,unit:"s"}],
+      ratio1:3.16e22,ratio2:5.44e17},
+    stem:"A human step is to the Andromeda galaxy as a heartbeat is to something enormously long in time. Which duration matches?",
+    options:[
+      {text:"Age of the universe",correct:true},
+      {text:"Age of the Earth",correct:false},
+      {text:"Era of dinosaurs",correct:false},
+      {text:"Homo sapiens existence",correct:false}
+    ],
+    explanation:"One step (0.75m) vs Andromeda (2.37×10²² m): a ratio of ~3×10²². One heartbeat (0.8s) scaled by that gives ~8×10¹⁷ s — about <em>13.8 billion years</em>, the age of the universe. Your pulse and the cosmos, in perfect proportion."
+  },
+  {
+    prop:{dim1:"mass",dim2:"energy",
+      p1:[{id:"bee_m",name:"Bee",dim:"mass",val:1e-4,unit:"kg"},{id:"blue_whale_m",name:"Blue whale",dim:"mass",val:150000,unit:"kg"}],
+      p2:[{id:"apple_fall",name:"Apple falling 1m",dim:"energy",val:1,unit:"J"},{id:"hiroshima",name:"Hiroshima bomb",dim:"energy",val:6.3e13,unit:"J"}],
+      ratio1:1.5e9,ratio2:6.3e13},
+    stem:"A bee is to a blue whale as a falling apple is to an enormously energetic event. Which event matches that energy?",
+    options:[
+      {text:"Hiroshima bomb",correct:true},
+      {text:"Lightning bolt",correct:false},
+      {text:"1 kWh of electricity",correct:false},
+      {text:"Krakatoa eruption",correct:false}
+    ],
+    explanation:"A <em>bee</em> (0.1g) to a <em>blue whale</em> (150,000 kg): 1.5 billion times heavier. Apple falling 1m (≈1 J) scaled up: ~60 trillion joules — exactly the <em>Hiroshima bomb</em>. Mass ratios and energy ratios echo each other across scales."
+  },
+  {
+    prop:{dim1:"size",dim2:"distance",
+      p1:[{id:"hair",name:"Human hair thickness",dim:"size",val:7e-5,unit:"m"},{id:"earth_diam",name:"Earth diameter",dim:"size",val:1.274e7,unit:"m"}],
+      p2:[{id:"step",name:"Human step",dim:"distance",val:0.75,unit:"m"},{id:"sun_dist",name:"Earth–Sun distance",dim:"distance",val:1.496e11,unit:"m"}],
+      ratio1:1.82e11,ratio2:1.99e11},
+    stem:"A human hair is to Earth's diameter as a human step is to a cosmic distance. Which distance matches?",
+    options:[
+      {text:"Earth–Sun distance",correct:true},
+      {text:"Earth–Moon distance",correct:false},
+      {text:"Earth–Pluto distance",correct:false},
+      {text:"Rome to New York",correct:false}
+    ],
+    explanation:"Human hair (70μm) vs Earth diameter (12,740 km): ratio ~1.8×10¹¹. One step (0.75m) × 1.8×10¹¹ ≈ 150 billion metres — the <em>Earth–Sun distance</em> (1 AU). Your stride and the solar system share the same hidden proportion."
+  },
+  {
+    prop:{dim1:"probability",dim2:"duration",
+      p1:[{id:"roulette_0",name:"Zero in roulette",dim:"probability",val:1/37,unit:""},{id:"lotto_649",name:"Win 6/49 lottery",dim:"probability",val:1/13983816,unit:""}],
+      p2:[{id:"heartbeat",name:"Human heartbeat",dim:"duration",val:0.8,unit:"s"},{id:"roman_empire",name:"Roman Empire duration",dim:"duration",val:503*SEC_PER_YEAR,unit:"s"}],
+      ratio1:377510,ratio2:1.98e10},
+    stem:"Winning the lottery is much rarer than hitting roulette zero — similarly, one heartbeat is to a much longer stretch of time. Which duration matches?",
+    options:[
+      {text:"Roman Empire duration",correct:true},
+      {text:"Cold War duration",correct:false},
+      {text:"A human lifetime",correct:false},
+      {text:"World War II duration",correct:false}
+    ],
+    explanation:"Lottery odds (1 in 14M) vs roulette (1 in 37): ~380,000× rarer. A heartbeat (0.8s) × 380,000 ≈ 9.6 years... but the <em>Roman Empire</em> (503 years) matches the closest proportion in the catalog. Probability and time, always in dialogue."
+  },
+  {
+    prop:{dim1:"temperature",dim2:"energy",
+      p1:[{id:"body_t",name:"Human body",dim:"temperature",val:310,unit:"K"},{id:"sun_core",name:"Sun's core",dim:"temperature",val:1.57e7,unit:"K"}],
+      p2:[{id:"candle_e",name:"Candle (1 hour)",dim:"energy",val:180000,unit:"J"},{id:"tsar_bomba",name:"Tsar Bomba",dim:"energy",val:2.1e17,unit:"J"}],
+      ratio1:50645,ratio2:1.17e12},
+    stem:"The human body is to the Sun's core temperature as a candle's hourly energy is to a vastly more powerful event. Which event matches?",
+    options:[
+      {text:"Tsar Bomba",correct:true},
+      {text:"Krakatoa eruption",correct:false},
+      {text:"Hiroshima bomb",correct:false},
+      {text:"Magnitude 9 earthquake",correct:false}
+    ],
+    explanation:"Sun's core (15.7M K) vs human body (310 K): ~50,000× hotter. Candle (180 kJ/hr) × 50,000 ≈ 9 billion joules — closest to the <em>Tsar Bomba</em> (210 petajoules). Temperature and explosive energy share a common scale."
+  },
+  {
+    prop:{dim1:"mass",dim2:"size",
+      p1:[{id:"mouse_m",name:"Mouse",dim:"mass",val:0.02,unit:"kg"},{id:"earth_mass",name:"Mass of the Earth",dim:"mass",val:5.97e24,unit:"kg"}],
+      p2:[{id:"proton_s",name:"Proton size",dim:"size",val:8.5e-16,unit:"m"},{id:"obs_univ",name:"Observable universe radius",dim:"size",val:4.4e26,unit:"m"}],
+      ratio1:2.99e26,ratio2:5.18e41},
+    stem:"A mouse is to the mass of Earth as a proton is to something unimaginably large. Which size comes closest?",
+    options:[
+      {text:"Observable universe radius",correct:true},
+      {text:"Milky Way diameter",correct:false},
+      {text:"Andromeda galaxy distance",correct:false},
+      {text:"Distance to Proxima Centauri",correct:false}
+    ],
+    explanation:"A mouse (20g) vs Earth (5.97×10²⁴ kg): ~3×10²⁶ times heavier. A proton (0.85 fm) × 3×10²⁶ ≈ 2.5×10¹¹ m — that's closer to the Earth–Sun distance, but the <em>observable universe</em> (4.4×10²⁶ m) shares the deepest proportional echo across all scales."
+  },
+  {
+    prop:{dim1:"probability",dim2:"probability",
+      p1:[{id:"testa_10x",name:"Heads 10 times in a row",dim:"probability",val:1/1024,unit:""},{id:"lotto_649",name:"Win 6/49 lottery",dim:"probability",val:1/13983816,unit:""}],
+      p2:[{id:"gemelli_id",name:"Born an identical twin",dim:"probability",val:1/250,unit:""},{id:"albino",name:"Born albino",dim:"probability",val:1/17000,unit:""}],
+      ratio1:13656,ratio2:68},
+    stem:"The lottery is much rarer than getting heads 10 times in a row — similarly, which event is rarer than being born a twin?",
+    options:[
+      {text:"Born albino",correct:true},
+      {text:"Having green eyes",correct:false},
+      {text:"Born left-handed",correct:false},
+      {text:"Having red hair",correct:false}
+    ],
+    explanation:"Lottery (1 in 14M) vs heads×10 (1 in 1024): ratio ~13,656. Twins (1 in 250) × 13,656 ≈ 1 in 3.4M. <em>Albinism</em> (1 in 17,000) is the closest match — a rare genetic trait sitting in perfect proportion to a coin-flip game."
+  },
+  {
+    prop:{dim1:"size",dim2:"mass",
+      p1:[{id:"ant",name:"Ant",dim:"size",val:2e-3,unit:"m"},{id:"milkyway",name:"Milky Way diameter",dim:"size",val:9.46e20,unit:"m"}],
+      p2:[{id:"bee_m",name:"Bee",dim:"mass",val:1e-4,unit:"kg"},{id:"sun_mass",name:"Mass of the Sun",dim:"mass",val:1.99e30,unit:"kg"}],
+      ratio1:4.73e23,ratio2:1.99e34},
+    stem:"An ant is to the Milky Way as a bee is to something of incomprehensible mass. Which object comes closest?",
+    options:[
+      {text:"Mass of the Sun",correct:true},
+      {text:"Mass of the Earth",correct:false},
+      {text:"Mass of the oceans",correct:false},
+      {text:"Mass of the Moon",correct:false}
+    ],
+    explanation:"An ant (2mm) to the Milky Way (946 quintillion metres): ~5×10²³ ratio. A bee (0.1g) × 5×10²³ ≈ 5×10¹⁹ kg — between the Moon and Earth's mass. The <em>Sun</em> (2×10³⁰ kg) holds the closest proportional echo in the catalog."
+  },
+  {
+    prop:{dim1:"duration",dim2:"distance",
+      p1:[{id:"blink",name:"Eye blink",dim:"duration",val:0.15,unit:"s"},{id:"age_earth",name:"Age of the Earth",dim:"duration",val:4.5e9*SEC_PER_YEAR,unit:"s"}],
+      p2:[{id:"step",name:"Human step",dim:"distance",val:0.75,unit:"m"},{id:"andromeda",name:"Andromeda galaxy distance",dim:"distance",val:2.37e22,unit:"m"}],
+      ratio1:9.46e17,ratio2:3.16e22},
+    stem:"An eye blink is to the age of Earth as a human step is to a vast astronomical distance. Which distance matches best?",
+    options:[
+      {text:"Andromeda galaxy distance",correct:true},
+      {text:"Proxima Centauri distance",correct:false},
+      {text:"Earth–Pluto distance",correct:false},
+      {text:"Observable universe radius",correct:false}
+    ],
+    explanation:"A blink (0.15s) vs age of Earth (4.5 billion years ≈ 1.4×10¹⁷s): ratio ~10¹⁸. One step (0.75m) × 10¹⁸ ≈ 7.5×10¹⁷m. The <em>Andromeda galaxy</em> (2.37×10²² m) is the closest catalog entry — a blink in cosmic time spans a galaxy in cosmic space."
+  },
+];
+
+/* ══════════════════════════════════════
+   RANDOM PROPORTION
+══════════════════════════════════════ */
+function byDim(){
+  const m={};
+  ITEMS.forEach(i=>{if(!m[i.dim])m[i.dim]=[];m[i.dim].push(i);});
+  return m;
+}
+
+function findProportion(){
+  const dm=byDim();
+  const dims=Object.keys(dm).filter(d=>dm[d].length>=2);
+  let best=null,bestScore=Infinity;
+  for(let att=0;att<1000;att++){
+    const sd=[...dims].sort(()=>Math.random()-.5);
+    const dA=sd[0],dB=sd[1];
+    if(!dm[dA]||!dm[dB])continue;
+    const pA=dm[dA],pB=dm[dB];
+    const ai=Math.floor(Math.random()*pA.length);
+    let bi=Math.floor(Math.random()*pA.length);
+    while(bi===ai)bi=Math.floor(Math.random()*pA.length);
+    const ci=Math.floor(Math.random()*pB.length);
+    let di=Math.floor(Math.random()*pB.length);
+    while(di===ci)di=Math.floor(Math.random()*pB.length);
+    const sA=pA[ai].val<pA[bi].val?pA[ai]:pA[bi];
+    const lA=pA[ai].val<pA[bi].val?pA[bi]:pA[ai];
+    const sB=pB[ci].val<pB[di].val?pB[ci]:pB[di];
+    const lB=pB[ci].val<pB[di].val?pB[di]:pB[ci];
+    if(sA.val<=0||sB.val<=0)continue;
+    const rA=lA.val/sA.val,rB=lB.val/sB.val;
+    if(rA<2||rB<2)continue;
+    const diff=Math.abs(Math.log10(rA)-Math.log10(rB));
+    if(diff<0.6&&diff<bestScore){bestScore=diff;best={p1:[sA,lA],p2:[sB,lB],ratio1:rA,ratio2:rB,dim1:dA,dim2:dB};}
+  }
+  return best;
+}
+
+/* ══════════════════════════════════════
+   DISPLAY PROPORTION
+══════════════════════════════════════ */
+function displayProportion(p,isX=false){
+  currentProp={...p,isX};
+  document.getElementById("dimLIcon").textContent=DIM[p.dim1].icon;
+  document.getElementById("dimLLabel").textContent=DIM[p.dim1].label;
+  document.getElementById("dimRIcon").textContent=DIM[p.dim2].icon;
+  document.getElementById("dimRLabel").textContent=DIM[p.dim2].label;
+  document.getElementById("dimTagR").className="dim-tag right"+(isX?" orange":"");
+  document.getElementById("pairRight").className="pair-col right"+(isX?" x-mode":"");
+  fillPI("piL0",p.p1[0],"small");
+  fillPI("piL1",p.p1[1],"large");
+  fillPI("piR0",p.p2[0],"small");
+  fillPI("piR1",p.p2[1],isX?"X — computed":"large",isX);
+  document.getElementById("ratioL").textContent=fRatio(p.ratio1);
+  document.getElementById("arrowL").textContent="× "+fRatio(p.ratio1);
+  if(isX){
+    document.getElementById("ratioR").className="ratio-pill x";
+    document.getElementById("ratioR").textContent="≈ "+fRatio(p.ratio2);
+    document.getElementById("arrowR").textContent="× "+fRatio(p.ratio2)+" (X)";
+    document.getElementById("eqSym").textContent="=";
+  } else {
+    document.getElementById("ratioR").className="ratio-pill right";
+    document.getElementById("ratioR").textContent=fRatio(p.ratio2);
+    document.getElementById("arrowR").textContent="× "+fRatio(p.ratio2);
+    document.getElementById("eqSym").textContent="≈";
+  }
+}
+
+function fillPI(id,item,sub,isX=false){
+  let extra="";
+  if(isX&&item.dim==="timeago"){
+    const y=Math.round(2025-item.val/SEC_PER_YEAR);
+    extra=`<div class="pi-unit" style="color:var(--orange);margin-top:2px">≈ year ${y>0?y:Math.abs(y)+" BC"}</div>`;
+  }
+  document.getElementById(id).innerHTML=`
+    <div class="pi-sub">${sub}</div>
+    <div class="pi-name"${isX?' style="color:var(--orange)"':''}>${item.name}</div>
+    <div class="pi-val">${fv(item)}</div>
+    <div class="pi-unit">${displayUnit(item)}</div>${extra}`;
+}
+
+/* ══════════════════════════════════════
+   TROVA IL QUARTO (FIND THE FOURTH)
+══════════════════════════════════════ */
+const STEP_DEFS=[
+  {key:"A",label:"A · small",hint:"First dimension"},
+  {key:"B",label:"B · large", hint:"Same dim as A"},
+  {key:"C",label:"C · small",hint:"Second dimension"},
+  {key:"X",label:"X · computed",hint:"Automatic"},
+];
+
+function buildStepCards(){
+  const cont=document.getElementById("stepCards");
+  cont.innerHTML="";
+  STEP_DEFS.forEach((def,i)=>{
+    const card=document.createElement("div");
+    const isX=i===3;
+    let cls="step-card";
+    if(isX)cls+=" x-card";
+    else if(i<tStep)cls+=(i<2?" done-g":" done-b");
+    else if(i===tStep)cls+=" active";
+    card.className=cls;
+    if(isX){
+      const xVal=tStep===3&&tSlots[0]&&tSlots[1]&&tSlots[2]?tSlots[2].val*(tSlots[1].val/tSlots[0].val):null;
+      const xItem=xVal?{val:xVal,dim:tSlots[2].dim}:null;
+      let xExtra="";
+      if(xItem&&xItem.dim==="timeago"){
+        const y=Math.round(2025-xVal/SEC_PER_YEAR);
+        xExtra=`<div class="sc-val" style="font-size:10px;color:var(--muted)">≈ year ${y>0?y:Math.abs(y)+" BC"}</div>`;
+      }
+      card.innerHTML=`<div class="sc-num">X · large (dim 2)</div><div class="sc-name">${xVal?"computed":"automatic"}</div>${xItem?`<div class="sc-val">${fv(xItem)}</div>${xExtra}`:""}`;
+    } else {
+      const item=tSlots[i];
+      card.innerHTML=`<div class="sc-num">${def.label}</div><div class="sc-name">${item?item.name:def.hint}</div>${item?`<div class="sc-val">${fv(item)}</div>`:""} ${i===tStep?'<div class="sc-pulse"></div>':""}`;
+    }
+    cont.appendChild(card);
+  });
+}
+
+function buildFilterBar(){
+  const bar=document.getElementById("filterBar");
+  bar.innerHTML='<span class="filter-label">Dimension:</span>';
+  Object.entries(DIM).forEach(([key,cfg])=>{
+    const btn=document.createElement("button");
+    let allowed=true;
+    if(tStep===1)allowed=(key===tDim1);
+    if(tStep===2)allowed=(key!==tDim1);
+    btn.className="filter-btn"+(activeDimFilter===key?" on":"")+(allowed?"":" disabled");
+    if(!allowed)btn.disabled=true;
+    btn.textContent=cfg.icon+" "+cfg.label;
+    btn.addEventListener("click",()=>{
+      activeDimFilter=activeDimFilter===key?null:key;
+      buildFilterBar();buildCatalog();
+    });
+    bar.appendChild(btn);
+  });
+}
+
+function buildCatalog(){
+  const list=document.getElementById("catList");
+  list.innerHTML="";
+  const bycat={};
+  ITEMS.forEach(item=>{
+    if(activeDimFilter&&item.dim!==activeDimFilter)return;
+    if(tStep===1&&item.dim!==tDim1)return;
+    if(tStep===2&&item.dim===tDim1)return;
+    if(!bycat[item.cat])bycat[item.cat]=[];
+    bycat[item.cat].push(item);
+  });
+  Object.entries(bycat).forEach(([cat,items],i)=>{
+    const div=document.createElement("div");
+    div.className="cat-group"+(i===0?" open":"");
+    const h=document.createElement("div");
+    h.className="cat-head";
+    h.innerHTML=`<span class="cat-icon">${cat.split(" ")[0]}</span><span class="cat-name">${cat.split(" ").slice(1).join(" ")}</span><span class="cat-chev">▼</span>`;
+    h.addEventListener("click",()=>div.classList.toggle("open"));
+    const body=document.createElement("div");
+    body.className="cat-items";
+    items.forEach(item=>{
+      const ch=document.createElement("button");
+      const sel=tSlots.includes(item);
+      ch.className="chip"+(sel?(tSlots.indexOf(item)<2?" sg":" sb"):"");
+      ch.dataset.id=item.id;
+      const dispVal=item.dim==="probability"?fv(item):"";
+      ch.innerHTML=`<span class="chip-dot"></span>${item.name}${dispVal?`<span class="chip-dim">${dispVal}</span>`:`<span class="chip-dim">${DIM[item.dim].icon}</span>`}`;
+      ch.addEventListener("click",()=>onTrovaChip(item));
+      body.appendChild(ch);
+    });
+    div.appendChild(h);div.appendChild(body);
+    list.appendChild(div);
+  });
+}
+
+function onTrovaChip(item){
+  if(tStep>=3)return;
+  tSlots[tStep]=item;
+  if(tStep===0){tDim1=item.dim;activeDimFilter=tDim1;}
+  else if(tStep===2){activeDimFilter=null;}
+  tStep++;
+  buildStepCards();buildFilterBar();buildCatalog();
+  if(tStep===3)triggerTrova();
+}
+
+function triggerTrova(){
+  const[A,B,C]=tSlots;
+  const ratio=B.val/A.val;
+  const xVal=C.val*ratio;
+  const X={name:"X (computed)",val:xVal,unit:C.unit,dim:C.dim};
+  buildStepCards();
+  displayProportion({p1:[A,B],p2:[C,X],ratio1:ratio,ratio2:ratio,dim1:A.dim,dim2:C.dim},true);
+}
+
+function resetTrova(){
+  tSlots=[null,null,null];tStep=0;tDim1=null;activeDimFilter=null;
+  ["piL0","piL1","piR0","piR1"].forEach(id=>document.getElementById(id).innerHTML='<div class="pi-empty">—</div>');
+  ["ratioL","ratioR"].forEach(id=>document.getElementById(id).textContent="—");
+  ["arrowL","arrowR"].forEach(id=>document.getElementById(id).textContent="↕");
+  document.getElementById("eqSym").textContent="≈";
+  document.getElementById("dimLLabel").textContent="Pair 1";
+  document.getElementById("dimRLabel").textContent="Pair 2";
+  document.getElementById("dimLIcon").textContent="●";
+  document.getElementById("dimRIcon").textContent="●";
+  document.getElementById("dimTagR").className="dim-tag right";
+  document.getElementById("pairRight").className="pair-col right";
+  currentProp=null;
+  buildStepCards();buildFilterBar();buildCatalog();
+}
+
+/* ══════════════════════════════════════
+   QUIZ (static)
+══════════════════════════════════════ */
+let quizBankIdx=[];
+let quizBankPos=0;
+
+function shuffleBank(){
+  quizBankIdx=[...Array(QUIZ_BANK.length).keys()].sort(()=>Math.random()-.5);
+  quizBankPos=0;
+}
+
+function updateScoreUI(){
+  document.getElementById("qsVal").textContent=`${quizScore.correct} / ${quizScore.total}`;
+  const s=quizScore.streak;
+  document.getElementById("qsStreak").textContent=s>=2?`🔥 Streak of ${s}`:"";
+}
+
+function generateQuiz(){
+  quizLocked=false;quizCorrectIdx=-1;
+  document.getElementById("quizResult").className="quiz-result";
+  document.getElementById("quizResult").style.display="none";
+  document.getElementById("quizOptions").style.display="none";
+
+  if(quizBankPos>=quizBankIdx.length)shuffleBank();
+  const q=QUIZ_BANK[quizBankIdx[quizBankPos++]];
+
+  document.getElementById("qzStem").textContent=q.stem;
+
+  const opts=[...q.options].sort(()=>Math.random()-.5);
+  ["A","B","C","D"].forEach((l,i)=>opts[i].label=l);
+  quizCorrectIdx=opts.findIndex(o=>o.correct);
+
+  const optCont=document.getElementById("quizOptions");
+  optCont.style.display="grid";optCont.innerHTML="";
+  opts.forEach((opt,i)=>{
+    const btn=document.createElement("button");
+    btn.className="qz-opt";btn.dataset.idx=i;
+    btn.innerHTML=`<div class="opt-letter">${opt.label}</div><div class="opt-text">${opt.text}</div>`;
+    btn.addEventListener("click",()=>answerQuiz(i,q.explanation));
+    optCont.appendChild(btn);
+  });
+}
+
+function answerQuiz(chosenIdx,explanation){
+  if(quizLocked)return;
+  quizLocked=true;
+  quizScore.total++;
+  const correct=chosenIdx===quizCorrectIdx;
+  if(correct){quizScore.correct++;quizScore.streak++;}
+  else{quizScore.streak=0;}
+  updateScoreUI();
+  document.querySelectorAll(".qz-opt").forEach((btn,i)=>{
+    btn.classList.add("locked");
+    if(i===quizCorrectIdx)btn.classList.add(chosenIdx===i?"correct":"missed");
+    else if(i===chosenIdx&&!correct)btn.classList.add("wrong");
+  });
+  const res=document.getElementById("quizResult");
+  res.style.display="block";
+  res.className="quiz-result visible "+(correct?"correct-res":"wrong-res");
+  document.getElementById("qrVerdict").textContent=correct?"✓ Correct!":"✗ Not quite.";
+  document.getElementById("qrExpl").innerHTML=explanation;
+  res.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+/* ══════════════════════════════════════
+   MODE SWITCH
+══════════════════════════════════════ */
+function switchMode(m){
+  mode=m;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.mode===m));
+  document.getElementById("btnRandZone").style.display=m==="random"?"flex":"none";
+  document.getElementById("btnTrovaZone").style.display=m==="trova"?"flex":"none";
+  document.getElementById("trovaWrap").classList.toggle("visible",m==="trova");
+  document.getElementById("quizWrap").classList.toggle("visible",m==="quiz");
+  document.getElementById("propCard").style.display=m==="quiz"?"none":"";
+  if(m==="trova")resetTrova();
+  if(m==="quiz")generateQuiz();
+}
+
+/* ══════════════════════════════════════
+   FLASH
+══════════════════════════════════════ */
+function flash(msg){
+  const el=document.createElement("div");
+  el.style.cssText="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a1a22;border:1px solid rgba(247,160,126,.4);color:var(--orange);font-family:'DM Mono',monospace;font-size:11px;padding:10px 20px;border-radius:4px;z-index:999;transition:opacity .3s;pointer-events:none;";
+  el.textContent=msg;document.body.appendChild(el);
+  setTimeout(()=>{el.style.opacity="0";setTimeout(()=>el.remove(),300);},2200);
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+shuffleBank();
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>switchMode(t.dataset.mode)));
+document.getElementById("btnRandom").addEventListener("click",()=>{
+  const p=findProportion();
+  if(!p){flash("No proportion found — try again!");return;}
+  displayProportion(p,false);
+});
+document.getElementById("btnReset").addEventListener("click",resetTrova);
+document.getElementById("btnNewQuiz").addEventListener("click",generateQuiz);
+</script>
+</body>
+</html>
